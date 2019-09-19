@@ -17,6 +17,13 @@ static struct file_operations nan_fops =
   .owner = THIS_MODULE,  
 };
 
+static char *nan_devnode(struct device *dev, umode_t *mode)
+{
+  if (mode)
+    *mode = 0666;
+  return NULL;
+}
+
 static int __init register_device(void)
 {
   int res = 0;
@@ -31,6 +38,7 @@ static int __init register_device(void)
     res = PTR_ERR(nan_class);
     goto err2;
   }
+  nan_class->devnode = nan_devnode;
 
   res_ptr = device_create(nan_class, NULL, nan_device, NULL, device_name);
   if (IS_ERR(res_ptr))
@@ -42,9 +50,6 @@ static int __init register_device(void)
   if (res < 0)
     goto err4;
 
-  printk(
-    KERN_NOTICE "nan: registered %i\n",
-    nan_device);
   return res;
 
 err4:
