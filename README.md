@@ -1,4 +1,6 @@
+# /dev/nan
 
+A device driver to let you memory-map arbitary numbers of double `NaN` values.
 
 
 ## Useful links

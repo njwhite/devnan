@@ -23,3 +23,7 @@ unload:
 	rmmod ./$(TARGET_MODULE).ko
 
 endif
+
+format:
+	clang-format -i $(PWD)/driver.c
+	yapf -i $(PWD)/test_driver.py

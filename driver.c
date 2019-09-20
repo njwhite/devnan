@@ -3,8 +3,8 @@
 #include <linux/device.h>
 #include <linux/fs.h>
 #include <linux/init.h>
-#include <linux/module.h>
 #include <linux/mm.h>
+#include <linux/module.h>
 #include <linux/slab.h>
 
 MODULE_LICENSE("GPL v2");
@@ -15,30 +15,25 @@ static struct class *nan_class = NULL;
 static dev_t nan_device = 0;
 static struct cdev nan_cdev;
 
-struct kmem_cache * nan_mem_cache = NULL;
-
 // the page of NaNs
-static char *nan_mem = NULL;
+static double *nan_mem = NULL;
+
+int nan_fault(struct vm_fault *vmf) {
+  struct page *page;
+  page = virt_to_page(nan_mem);
+  get_page(page);
+  vmf->page = page;
+  return 0;
+}
+
+struct vm_operations_struct mmap_vm_ops = {
+    .fault = nan_fault,
+};
 
 static int nan_mmap(struct file *filp, struct vm_area_struct *vma) {
-  int res = 0;
-  unsigned long pfn = virt_to_phys((void *)nan_mem)>>PAGE_SHIFT;
-  unsigned long base = 0;
-
-  for (base = vma->vm_start; base < vma->vm_end; base += PAGE_SIZE) {
-    res = remap_pfn_range(
-      vma,
-      base,
-      pfn, 
-      min(PAGE_SIZE, vma->vm_end - base), 
-      vma->vm_page_prot);
-    if (res < 0) {
-      printk("can't alloc %d\n", res);
-      return -EIO;
-    }
-  }
-
-  return res;
+  vma->vm_ops = &mmap_vm_ops;
+  vma->vm_flags |= VM_IO;
+  return 0;
 }
 
 static struct file_operations nan_fops = {
@@ -53,7 +48,7 @@ static char *nan_devnode(struct device *dev, umode_t *mode) {
 }
 
 static int __init register_device(void) {
-  int res = 0;
+  int res = 0, i = 0;
   void *res_ptr = NULL;
 
   res = alloc_chrdev_region(&nan_device, 0, 1, driver_name) < 0;
@@ -77,24 +72,14 @@ static int __init register_device(void) {
   if (res < 0)
     goto err4;
 
-  nan_mem_cache = kmem_cache_create(
-    driver_name,
-    PAGE_SIZE,
-    PAGE_SIZE,
-    SLAB_POISON | SLAB_RED_ZONE | SLAB_HWCACHE_ALIGN,
-    NULL);
-  if (!nan_mem_cache)
-    goto err4;
-
-  nan_mem = kmem_cache_alloc(nan_mem_cache, GFP_KERNEL);  
-  if (!nan_mem)
-    goto err5;
+  nan_mem = (double *)get_zeroed_page(GFP_KERNEL);
   SetPageReserved(virt_to_page((unsigned long)nan_mem));
+
+  for (i = 0; i < PAGE_SIZE / sizeof(double); ++i)
+    nan_mem[i] = __builtin_nanf("");
 
   return res;
 
-err5:
-  kmem_cache_destroy(nan_mem_cache);
 err4:
   device_destroy(nan_class, nan_device);
 err3:
@@ -108,11 +93,8 @@ err1:
 static void __exit unregister_device(void) {
   if (nan_mem) {
     ClearPageReserved(virt_to_page((unsigned long)nan_mem));
-    kmem_cache_free(nan_mem_cache, nan_mem);
-  }
-
-  if (nan_mem_cache) {
-    kmem_cache_destroy(nan_mem_cache);
+    free_page((unsigned long)nan_mem);
+    nan_mem = NULL;
   }
 
   cdev_del(&nan_cdev);
