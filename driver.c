@@ -6,6 +6,7 @@
 #include <linux/mm.h>
 #include <linux/module.h>
 #include <linux/slab.h>
+#include <linux/version.h>
 
 MODULE_LICENSE("GPL v2");
 
@@ -18,7 +19,11 @@ static struct cdev nan_cdev;
 // the page of NaNs
 static double *nan_mem = NULL;
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 11, 0)
+int nan_fault(struct vm_area_struct *vma, struct vm_fault *vmf) {
+#else
 int nan_fault(struct vm_fault *vmf) {
+#endif
   struct page *page;
   page = virt_to_page(nan_mem);
   get_page(page);

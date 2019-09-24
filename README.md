@@ -11,3 +11,8 @@ A device driver to let you memory-map arbitary numbers of double `NaN` values.
 - [mem.c](https://github.com/torvalds/linux/blob/master/drivers/char/mem.c)
 - [Memory-Mapping](https://linux-kernel-labs.github.io/master/labs/memory_mapping.html)
 - [MMap Driver Implementation](https://jlmedina123.wordpress.com/2015/04/14/mmap-driver-implementation)
+
+## Vagrant
+
+- `VAGRANT_DISABLE_STRICT_DEPENDENCY_ENFORCEMENT=1 vagrant plugin install vagrant-reload`
+- `vagrant up`
