@@ -1,5 +1,6 @@
 import mmap
 import numpy as np
+import pytest
 import os
 import unittest
 
@@ -34,3 +35,9 @@ class TestNaN(unittest.TestCase):
 
         c = self._load(MANY_PAGES)
         assert np.isnan(c).all(), "didn't break the driver's page!"
+
+    def test_bad(self, shape=1):
+        # no polluting the template NaN page
+        with open(PATH, 'rb') as f:
+            with pytest.raises(PermissionError):
+                mm = mmap.mmap(f.fileno(), 8 * shape, access=mmap.ACCESS_WRITE)
