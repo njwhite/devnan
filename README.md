@@ -1,6 +1,6 @@
 # /dev/nan
 
-A device driver to let you memory-map arbitary numbers of double `NaN` values.
+A device driver to let you memory-map arbitary numbers of double `NaN` values in O(1) time.
 
 
 ## Useful links
@@ -14,5 +14,12 @@ A device driver to let you memory-map arbitary numbers of double `NaN` values.
 
 ## Vagrant
 
-- `VAGRANT_DISABLE_STRICT_DEPENDENCY_ENFORCEMENT=1 vagrant plugin install vagrant-reload`
-- `vagrant up`
+Test the driver on Centos 7.
+
+
+```shell
+VAGRANT_DISABLE_STRICT_DEPENDENCY_ENFORCEMENT=1 vagrant plugin install vagrant-reload
+vagrant up
+```
+
+[This](https://github.com/vagrant-libvirt/vagrant-libvirt/issues/735) might be useful if Vagrant is hanging on NFS issues.

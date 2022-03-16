@@ -21,8 +21,10 @@ static double *nan_mem = NULL;
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 11, 0)
 int nan_fault(struct vm_area_struct *vma, struct vm_fault *vmf) {
-#else
+#elif LINUX_VERSION_CODE < KERNEL_VERSION(4, 17, 0)
 int nan_fault(struct vm_fault *vmf) {
+#else
+vm_fault_t nan_fault(struct vm_fault *vmf) {
 #endif
   struct page *page;
   page = virt_to_page(nan_mem);

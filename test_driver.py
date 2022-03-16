@@ -10,6 +10,7 @@ MANY_PAGES = 1024 * 4 * 20
 
 @unittest.skipUnless(os.path.exists(PATH), reason="need the device to mmap")
 class TestNaN(unittest.TestCase):
+
     def _load(self, *shape):
         with open(PATH, 'rb') as f:
             mm = mmap.mmap(f.fileno(),

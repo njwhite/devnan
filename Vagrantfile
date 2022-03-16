@@ -6,16 +6,15 @@ Vagrant.configure("2") do |config|
 
   config.vm.box = "centos/7"
 
-  config.vm.synced_folder ".", "/src"
+  # NFS version defaults to 3, may not be supported by your host
+  config.vm.synced_folder ".", "/src", type: "nfs", nfs_version: 4
 
-  config.vm.provider :libvirt do |libvirt|
-    libvirt.storage_pool_name = "images"
-  end
-
+  # upgrade the kernel to the latest version
   config.vm.provision "shell", inline: <<-SHELL
     yum install -y kernel
   SHELL
 
+  # reboot into the newly-upgraded kernel
   config.vm.provision :reload
 
   config.vm.provision "shell", inline: <<-SHELL
